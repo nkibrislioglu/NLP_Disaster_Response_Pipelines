@@ -17,7 +17,13 @@ def clean_data(df):
     for column in categories:
         categories[column] = categories[column].apply(lambda x: x[len(x)-1:])  # set each value to be the last character of the string
         categories[column] = categories[column].apply(int) # convert column from string to numeric
-        
+    
+    for column in categories: #drops the colums have all zero values and fixes max values exceeds 1
+        if categories[column].max()==0:
+           categories=categories.drop(column,1)
+        elif categories[column].max()>1:
+            categories.loc[categories[column]>1,'column']=1
+            
     df = df.drop('categories',1)
     df = pd.concat([df, categories], axis=1).reindex(df.index)
     df = df.drop_duplicates()
@@ -25,7 +31,7 @@ def clean_data(df):
 
 def save_data(df, database_filename):
     engine = create_engine('sqlite:///'+ database_filename)
-    df.to_sql('final_table', engine, index=False)
+    df.to_sql('final_table', engine, index=False, if_exists='replace')
     pass  
 
 
