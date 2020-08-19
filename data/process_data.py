@@ -24,8 +24,8 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename):
-    engine = create_engine('sqlite:///EmergencyMessages.db')
-    df.to_sql(database_filename, engine, index=False)
+    engine = create_engine('sqlite:///'+ database_filename)
+    df.to_sql('final_table', engine, index=False)
     pass  
 
 
