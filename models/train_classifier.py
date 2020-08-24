@@ -1,5 +1,5 @@
 import sys
-from sklearn.metrics import classification_report
+
 import nltk
 nltk.download(['punkt', 'wordnet'])
 
@@ -13,11 +13,12 @@ from nltk.corpus import stopwords
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sqlalchemy import create_engine
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
 
 def load_data(database_filepath):
     engine = create_engine('sqlite:///' + database_filepath)
@@ -43,7 +44,7 @@ def build_model():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(RandomForestClassifier()))
+        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
     ])
   
     parameters = {
@@ -58,7 +59,12 @@ def build_model():
 def evaluate_model(model, X_test, Y_test, category_names):
     y_pred = model.predict(X_test)
     report= classification_report(y_test,y_pred, target_names=category_names)
-    return report
+    temp=[]
+    for item in report.split("\n"):
+        temp.append(item.strip().split('     '))
+    clean_list=[ele for ele in temp if ele != ['']]
+    report_df=pd.DataFrame(clean_list[1:],columns=['group','precision','recall', 'f1-score','support'])
+    return report_df
 
 
 def save_model(model, model_filepath):
