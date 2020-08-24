@@ -25,7 +25,8 @@ def load_data(database_filepath):
     df = pd.read_sql_table('final_table',engine)
     X= df.message.values
     Y= df.drop(['id','message','original','genre'],1)
-    return X, Y
+    Category_names=Y.columns
+    return X, Y, Category_names
 
 
 def tokenize(text):
