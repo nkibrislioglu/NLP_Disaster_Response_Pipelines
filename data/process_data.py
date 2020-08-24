@@ -22,8 +22,8 @@ def clean_data(df):
         if categories[column].max()==0:
            categories=categories.drop(column,1)
         elif categories[column].max()>1:
-            categories.loc[categories[column]>1,'column']=1
-            
+            categories.loc[categories[column]>1,column]=1
+    
     df = df.drop('categories',1)
     df = pd.concat([df, categories], axis=1).reindex(df.index)
     df = df.drop_duplicates()
