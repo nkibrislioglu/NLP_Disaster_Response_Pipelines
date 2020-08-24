@@ -27,6 +27,7 @@ def clean_data(df):
     df = df.drop('categories',1)
     df = pd.concat([df, categories], axis=1).reindex(df.index)
     df = df.drop_duplicates()
+    df=df.dropna(how='all')
     return df
 
 def save_data(df, database_filename):
