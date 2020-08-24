@@ -1,11 +1,12 @@
 import sys
 
 import nltk
-nltk.download(['punkt', 'wordnet'])
+nltk.download(['punkt', 'wordnet','stopwords'])
 
 import re
 import numpy as np
 import pandas as pd
+import pickle
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
@@ -30,15 +31,23 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    tokens = word_tokenizer(text)
+    
+    url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    detected_urls = re.findall(url_regex, text)
+    for url in detected_urls:
+        text = text.replace(url, "urlplaceholder")
+    
+    stop_words = stopwords.words("english")
     lemmatizer = WordNetLemmatizer()
-
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    
+    # tokenize text
+    tokens = word_tokenize(text)
+    
+    # lemmatize andremove stop words
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
+    
+    return tokens
 
 
 def build_model():
@@ -49,7 +58,7 @@ def build_model():
     ])
   
     parameters = {
-         'clf__estimator__n_estimators': [100, 200],
+         
         'vect__max_df': (0.5, 0.75, 1.0)
         }
 
@@ -59,7 +68,7 @@ def build_model():
 
 def evaluate_model(model, X_test, Y_test, category_names):
     y_pred = model.predict(X_test)
-    report= classification_report(y_test,y_pred, target_names=category_names)
+    report= classification_report(Y_test,y_pred, target_names=category_names)
     temp=[]
     for item in report.split("\n"):
         temp.append(item.strip().split('     '))
