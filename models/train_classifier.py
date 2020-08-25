@@ -14,7 +14,7 @@ from nltk.corpus import stopwords
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sqlalchemy import create_engine
 from sklearn.multioutput import MultiOutputClassifier
@@ -54,7 +54,7 @@ def build_model():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
+        ('clf', MultiOutputClassifier(LinearSVC()))
     ])
   
     parameters = {
