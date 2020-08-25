@@ -7,6 +7,7 @@ import re
 import numpy as np
 import pandas as pd
 import pickle
+
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
@@ -22,6 +23,17 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 
 def load_data(database_filepath):
+    """ Loads data from the data base.
+        Splits X(messages) and Y(categories) into distict lists
+        
+    Args:
+        database_filepath: Filepath of the database
+    Returns:
+        two lists and one data frame
+        X: a list of emergency messages 
+        Y: a data frame includes category classifications of messages
+        Column names: a list of category names
+    """
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table('final_table',engine)
     X= df.message.values
@@ -31,7 +43,15 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-    
+    """ Tokenize given text:
+        detects urls and replace them with usr_placholder
+        Cleans stop words 
+        Lemmatizes the text
+    Args:
+        Text: text string
+    Returns:
+        A list of clean tokens
+    """
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -51,6 +71,11 @@ def tokenize(text):
 
 
 def build_model():
+    """Builds a machine learning pipeline.
+    Creates a grid search parameters.
+    Args: None
+    Returns: 
+        A machine learning model with grid search """
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -67,6 +92,14 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """Evaluates the machine learning algorithm
+    Args:
+        model: machine learning model
+        X_test: test data of X values (messages)
+        Y_test: test data of Y values(categories)
+        category_names: a list of category names
+     Returns:
+        A data frame including precision, recall and f1 scores"""
     y_pred = model.predict(X_test)
     report= classification_report(Y_test,y_pred, target_names=category_names)
     temp=[]
@@ -78,6 +111,12 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """ Saves the trained model to a picle file
+    Args:
+        model: trained machine learnin model
+        model_filepath: the filepath of the model
+    Returns:
+        None"""
     pickle.dump(model,open(model_filepath,'wb'))
  
 
