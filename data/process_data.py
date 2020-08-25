@@ -3,12 +3,33 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+    """loads two data files and merges them into one 
+    Args
+        messages_filepath: first data file's path. This includes emergency messages
+        categories_filepath: second data file's path. This includes categories assigned to each message.
+    
+    Returns
+        One merged data frame
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = pd.merge(messages,categories,on ='id')
     return df
 
 def clean_data(df):
+    """Cleans the given data frame:
+        Splits categories into distinct columns. 
+        Converts category values to 0 and 1.
+        Drops the colums have all zero values.
+        Assigns value of 1 to the ones whose max values exceeds 1
+        Drops duplicate rows.
+        Drops row whose entire columns is Na.
+        
+    Args:
+        df: data frame created by load_data function
+    Returns:
+        Clean data frame"""
+    
     categories = df['categories'].str.split(pat=';',expand=True)
     row = categories.iloc[0,]
     category_colnames = row.apply(lambda x: x[:-2])
@@ -31,6 +52,12 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename):
+    """Saves the data frame to a defined sql data base
+    Args:
+        df: data frame to be saved to the database
+        database_filename: database file name df will be stored
+    Returns:
+        None"""
     engine = create_engine('sqlite:///'+ database_filename)
     df.to_sql('final_table', engine, index=False, if_exists='replace')
     pass  
